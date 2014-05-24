@@ -1,0 +1,143 @@
+What is brainf*ck?
+Brainf*ck is close to being the simplest programming language possible, with only 8 instructions:
+
+> < + - , . [ ]
+These instructions move an internal data pointer, increment and decrement the value at the data pointer, input and output data, and provide simple looping.
+
+As an aside: brainf*ck was written with the intent of having a language with the smallest-possible compiler. Many compilers for brainf*ck are smaller than 200 bytes! See Wikipedia for more details.
+
+Why would I want to learn such a stupid language?
+It’s been suggested that you should learn at least 6 programming languages to be a good programmer. The more programming languages you know, the more perspectives you’ll have on problems. Brainf*ck is such a simple language to learn, there’s almost no reason not to learn it. If you read the whole of this blog post now, and try out all the code samples in the interpreter, in half-an-hour to an hour you’ll have a new programming language under your belt. Tell me that’s a waste of time :)
+
+Another good reason to learn brainf*ck is to understand how basic a Turing-complete programming language can be. A common argument when programmers compare languages is “well they’re all Turing-complete”, meaning that anything you can do in one language you can do in another. Once you’ve learnt brainf*ck, you’ll understand just how difficult it can be to use a Turing-complete language, and how that argument holds no water.
+
+Ok, you’ve convinced me. Teach me!
+Good. I knew you were one of the smart ones.
+
+Brainf*ck doesn’t have variable names – just one long array of cells, each of which contains a number:
+
+address: 0  1  2  3  4  5  6  ...
+value:  [0][0][0][0][0][0][0][...]
+Each cell is initialized to zero. A data pointer starts off pointing to the first cell:
+
+pointer: v
+address: 0  1  2  3  4  5  6  ...
+value:  [0][0][0][0][0][0][0][...]
+Moving the data pointer and modifying the data
+
+A brainf*ck program is a stream of the 8 commands (other characters are allowed in this stream but are ignored). Here’s a basic brainf*ck program:
+
+>>>>++
+The greater-than command moves the data pointer one cell to the right. The plus command increases the value of the cell under the data pointer by 1. Here’s what the data looks like after we run the above program:
+
+pointer:             v
+address: 0  1  2  3  4  5  6  ...
+value:  [0][0][0][0][2][0][0][...]
+The data pointer moved four cells to the right, and the value of that cell was increased by 2. Pretty simple.
+
+You can probably guess what the less-than and minus commands do:
+
+program: >>>>++<<++-
+
+pointer:       v
+address: 0  1  2  3  4  5  6  ...
+value:  [0][0][1][0][2][0][0][...]
+So, move four cells right, increment twice, move two cells left, increment twice and decrement once.
+
+Well done, you’ve already learnt half of the syntax of brainf*ck.
+
+I/O
+
+A programming language isn’t much use without the ability to input and output data. Brainf*ck has two commands for I/O – , (comma) and . (full-stop/period). The comma inputs a character from the input into the current cell, and the period outputs the character in the current cell. The ASCII code of the character is used on input and output. You may not be used to interchanging characters and integers, so it’s worth having a look at this chart to see how they map.
+
+Here’s a simple program that inputs a character, increments it once, then outputs it:
+
+program: ,+.
+input:   a
+
+pointer:  v     
+address:  0  1  2  3  4  5  6  ...
+value:  [98][0][0][0][0][0][0][...]
+The program takes a character from the input, in this case the letter ‘a’, and puts it into the first data cell. It then increments it, and outputs the value of the cell. A lowercase ‘a’ has the ASCII code 97, and ‘b’ has the ASCII code 98.
+
+Try it out. Go to my brainf*ck interpreter, put the string ,+. into the “Code” box and the letter ‘a’ into the “Input” box (or use this link), then press “Run”. Try it with different input, then try using more pluses or minuses.
+
+Every time you use the comma command you remove a character from the input stream:
+
+program: ,>,>,.<.<.
+input:   abc
+
+pointer:  v     
+address:  0   1   2  3  4  5  6  ...
+value:  [97][98][99][0][0][0][0][...]
+This program puts the first character of input in the first cell, the second character in the second cell and the third character in the third cell (although it looks like an evil dragon smiley). Try it out to see what happens.
+
+Looping
+
+Ok, that’s three-quarters of the language covered now. All that’s left is looping. This is a bit trickier, but fairly simple once you’ve got the hang of it.
+
+[ and ] (left and right brackets) are used for looping. Anything in between pairs of brackets will loop (you can have nested loops – the pairs match like parentheses (i.e. this is the equivalent of an inner loop) and this is the outer loop (did you see what I did there? (inner inner!))). Of course there’s no point looping forever, so brainf*ck needs a way of knowing when to stop. It does this by checking the value of the current data cell to see if it is zero. If it is, execution will skip to after the end of the loop.
+
+To illustrate this I’m going to need to show the position of the current instruction. This is called the instruction pointer, or i_ptr in the figure below.
+
+To start with, the ‘z’ is read into the first cell:
+
+i_ptr:   v
+program: ,[.-]
+input:   z
+
+pointer:  v     
+address:  0   1  2  3  4  5  6  ...
+value:  [122][0][0][0][0][0][0][...]
+The instruction pointer moves to the next instruction in the program. It checks to see if the value in the current data cell is zero. It isn’t, so the loop is entered.
+
+i_ptr:    v
+program: ,[.-]
+input:   z
+
+pointer:  v     
+address:  0   1  2  3  4  5  6  ...
+value:  [122][0][0][0][0][0][0][...]
+The value in the current data cell is output (‘z’), then decremented:
+
+i_ptr:      v
+program: ,[.-]
+input:   z
+
+pointer:  v     
+address:  0   1  2  3  4  5  6  ...
+value:  [121][0][0][0][0][0][0][...]
+The instruction pointer reaches the end of the loop and jumps back to the beginning:
+
+i_ptr:    v
+program: ,[.-]
+input:   z
+
+pointer:  v     
+address:  0   1  2  3  4  5  6  ...
+value:  [121][0][0][0][0][0][0][...]
+The current cell is still not zero, so the loop is entered again, the new value is output (‘y’), and decremented again. This keeps on going until the value of the first data cell is zero. At this point, the instruction pointer jumps to after the end of the loop, which also happens to be the end of the program:
+
+i_ptr:        v
+program: ,[.-]
+input:   z
+
+pointer: v     
+address: 0  1  2  3  4  5  6  ...
+value:  [0][0][0][0][0][0][0][...]
+Try it out to see what happens.
+
+Refresher
+
+And that’s the entire language. Here’s a quick recap:
+
+> Move the data pointer one cell to the right
+< Move the data pointer one cell to the left
++ Increment the value of the cell at the data pointer
+- Decrement the value of the cell at the data pointer
+, Take a character from the input and place its value into the current data cell
+. Output the value of the current data cell as a character
+[ If the current data cell is zero, skip to after the closing bracket, otherwise continue
+] Skip back to the matching opening bracket (a common optimization is to skip over this instruction if the current cell is zero, rather than going back to the opening bracket and checking)
+The end
+If you’ve read the whole blog post and tried out all the code, you now know brainf*ck. Well done, that’s another item for your CV! If you try making anything relatively complex you’ll realise the true value of the abstractions we build software on. All languages have different levels of abstraction, and you should be working at the highest level you can afford. It’s worth dropping down to the level of brainf*ck occasionally so you can really appreciate the abstractions you’re given.
